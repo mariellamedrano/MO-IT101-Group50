@@ -237,7 +237,7 @@ public class MotorPH {
                             double withholdingTax = computeWithholdingTax(taxableIncome);
                             System.out.println("Withholding Tax: " + withholdingTax);
                             //calculate net salary
-                            double finalNetSalary = grossSalary2 - (sss + philhealth + pagibig + withholdingTax);
+                            double finalNetSalary = monthlyGross - (sss + philhealth + pagibig + withholdingTax);
                             System.out.println("Final Net Salary: " + finalNetSalary);
                         }
 
