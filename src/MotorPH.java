@@ -51,7 +51,7 @@ public class MotorPH {
 
                 // Refactored to try-with-recources to ensure the CSVReader is automatically closed.
                 // This prevents resource leaks even if an exception occurs during the file-reading loop.
-                try (CSVReader reader = new CSVReader(new FileReader(empFile)));
+                try (CSVReader reader = new CSVReader(new FileReader(empFile))) {
                     reader.readNext(); // skip header
                     String[] row;
 
@@ -121,7 +121,7 @@ public class MotorPH {
                     double hourlyRate = 0;
                     boolean found = false;
 
-                    try (CSVReader reader = new CSVReader(new FileReader(empFile)));
+                    try (CSVReader reader = new CSVReader(new FileReader(empFile))) {
                         reader.readNext(); 
                         String[] row;
 
@@ -152,7 +152,7 @@ public class MotorPH {
 
                     // Hours worked calculations (June - December)
                     // Using try-with-resources to prevent memory leaks and handle file closure automatically
-                    try (CSVReader attendanceReader = new CSVReader(new FileReader(attendanceFile)));
+                    try (CSVReader attendanceReader = new CSVReader(new FileReader(attendanceFile))) {
                         attendanceReader.readNext();
                         String[] row;
                         //This line loads the data so allRecords exists.
@@ -166,12 +166,12 @@ public class MotorPH {
                             double secondHalf = 0;
 
                             // Instead of re-opening the file, we loop through the List we already loaded
-                            for (String[] row: allRecords) {
-                                if (!row[0].equals(empNo)) {
+                            for (String[] empRow: allRecords) {
+                                if (!empRow[0].equals(empNo)) {
                                     continue;
                                 }
 
-                                String[] dateParts = row[3].split("/");
+                                String[] dateParts = empRow[3].split("/");
                                 int recordMonth = Integer.parseInt(dateParts[0]);
                                 int day = Integer.parseInt(dateParts[1]);
                                 int year = Integer.parseInt(dateParts[2]);
@@ -180,8 +180,8 @@ public class MotorPH {
                                     continue;
                                 }
 
-                                java.time.LocalTime login = java.time.LocalTime.parse(row[4].trim(), timeFormat);
-                                java.time.LocalTime logout = java.time.LocalTime.parse(row[5].trim(), timeFormat);
+                                java.time.LocalTime login = java.time.LocalTime.parse(empRow[4].trim(), timeFormat);
+                                java.time.LocalTime logout = java.time.LocalTime.parse(empRow[5].trim(), timeFormat);
 
                                 double hours = computeHours(login, logout); // calculate from log in to log out
 
@@ -195,7 +195,7 @@ public class MotorPH {
                             String monthName = java.time.Month.of(month).name();
                             System.out.println("\n===========================================");
                             System.out.println("PAYROLL FOR " + monthName + 2024);
-                            System.out.println("=============================================");
+                            System.out.println("===========================================");
                             System.out.println("\nCutoff Date: " + monthName + " 1 to 15");
                             System.out.println("Total Hours Worked: " + firstHalf);
 
@@ -216,6 +216,7 @@ public class MotorPH {
                             double monthlyGross = grossSalary + grossSalary2;
 
                             System.out.println("MONTHLY GROSS SALARY: " + monthlyGross);
+                            System.out.println("Taxable Income: " + taxableIncome);
                             System.out.println("---------------------------------------------");
                             // GOVERNMENT DEDUCTIONS
                             double sss = computeSSS(monthlyGross); // Calculate SSS contribution
@@ -226,17 +227,16 @@ public class MotorPH {
                             double withholdingTax = computeWithholdingTax(taxableIncome); // calculate taxes
                             double finalNetSalary = grossSalary2 - (sss + philhealth + pagibig + withholdingTax); // calculate the net summary
 
-                            System.out.println("\MONTHLY DEDUCTIONS ");
+                            System.out.println("MONTHLY DEDUCTIONS ");
                             System.out.println("SSS: " + sss);
                             System.out.println("PhilHealth: " + philhealth);
                             System.out.println("Pag-IBIG: " + pagibig);
-                            System.out.println("Taxable Income: " + taxableIncome);
                             System.out.println("Withholding Tax: " + withholdingTax);
                             System.out.println("Total Deductions: " + totalDeductions);
                             
-                            System.out.println("\--------------------------------------------");
+                            System.out.println("--------------------------------------------");
                             System.out.println("Final Net Salary: " + finalNetSalary);
-                            System.out.println("=============================================");
+                            System.out.println("============================================");
                         }
 
                     } catch (Exception ex) {
@@ -280,7 +280,7 @@ public class MotorPH {
                                     if (!attRow[0].equals(empNo)) continue;
                                     
                                     String[] dateParts = attRow[3].split("/");
-                                    if (Integer.parseInt(dateParts[0]) != motnh || Integer.parseInt(dateParts[2]) != 2024) continue;
+                                    if (Integer.parseInt(dateParts[0]) != month || Integer.parseInt(dateParts[2]) != 2024) continue;
 
                                     java.time.LocalTime login = java.time.LocalTime.parse(attRow[4].trim(), timeFormat);
                                     java.time.LocalTime logout = java.time.LocalTime.parse(attRow[5].trim(), timeFormat);
@@ -294,7 +294,7 @@ public class MotorPH {
                                 String monthName = java.time.Month.of(month).name();
                                 System.out.println("\n===========================================");
                                 System.out.println("PAYROLL FOR " + monthName + 2024);
-                                System.out.println("=============================================");
+                                System.out.println("===========================================");
                                 System.out.println("\nCutoff Date: " + monthName + " 1 to 15");
                                 System.out.println("Total Hours Worked: " + firstHalf);
 
@@ -315,6 +315,7 @@ public class MotorPH {
                                 double monthlyGross = grossSalary + grossSalary2;
 
                                 System.out.println("MONTHLY GROSS SALARY: " + monthlyGross);
+                                System.out.println("Taxable Income: " + taxableIncome);
                                 System.out.println("---------------------------------------------");
                                 // GOVERNMENT DEDUCTIONS
                                 double sss = computeSSS(monthlyGross); // Calculate SSS contribution
@@ -325,17 +326,16 @@ public class MotorPH {
                                 double withholdingTax = computeWithholdingTax(taxableIncome); // calculate taxes
                                 double finalNetSalary = grossSalary2 - (sss + philhealth + pagibig + withholdingTax); // calculate the net summary
 
-                                System.out.println("\MONTHLY DEDUCTIONS ");
+                                System.out.println("MONTHLY DEDUCTIONS ");
                                 System.out.println("SSS: " + sss);
                                 System.out.println("PhilHealth: " + philhealth);
                                 System.out.println("Pag-IBIG: " + pagibig);
-                                System.out.println("Taxable Income: " + taxableIncome);
                                 System.out.println("Withholding Tax: " + withholdingTax);
                                 System.out.println("Total Deductions: " + totalDeductions);
                             
-                                System.out.println("\--------------------------------------------");
+                                System.out.println("--------------------------------------------");
                                 System.out.println("Final Net Salary: " + finalNetSalary);
-                                System.out.println("=============================================");
+                                System.out.println("============================================");
                                 
                             }
                             count++;
