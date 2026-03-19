@@ -212,21 +212,22 @@ public class MotorPH {
                             double grossSalary2 = secondHalf * hourlyRate;
                             System.out.println("Gross Salary: " + grossSalary2);
                             System.out.println("---------------------------------------------");
-                            //adding both cutoffs for deductions
+                            
+                            // Adding both cutoffs for deductions
                             double monthlyGross = grossSalary + grossSalary2;
-                            double taxableIncome = monthlyGross - totalDeductions; // to get the taxable income
-
-                            System.out.println("MONTHLY GROSS SALARY: " + monthlyGross);
-                            System.out.println("Taxable Income: " + taxableIncome);
-                            System.out.println("---------------------------------------------");
                             // GOVERNMENT DEDUCTIONS
                             double sss = computeSSS(monthlyGross); // Calculate SSS contribution
                             double philhealth = computePhilHealth(monthlyGross); //calculate PhilHealth contribution
                             double pagibig = computePagIbig(monthlyGross); //calculate Pag-ibig contribution
                             double totalDeductions = sss + philhealth + pagibig; //calculate total deductions
+                            double taxableIncome = monthlyGross - totalDeductions; // to get the taxable income
                             double withholdingTax = computeWithholdingTax(taxableIncome); // calculate taxes
                             double finalNetSalary = grossSalary2 - (sss + philhealth + pagibig + withholdingTax); // calculate the net summary
 
+                            System.out.println("MONTHLY GROSS SALARY: " + monthlyGross);
+                            System.out.println("Taxable Income: " + taxableIncome);
+                            System.out.println("---------------------------------------------");
+                
                             System.out.println("MONTHLY DEDUCTIONS ");
                             System.out.println("SSS: " + sss);
                             System.out.println("PhilHealth: " + philhealth);
@@ -311,20 +312,21 @@ public class MotorPH {
                                 double grossSalary2 = secondHalf * hourlyRate;
                                 System.out.println("Gross Salary: " + grossSalary2);
                                 System.out.println("---------------------------------------------");
-                                //adding both cutoffs for deductions
+                                
+                                // Adding both cutoffs for deductions
                                 double monthlyGross = grossSalary + grossSalary2;
-                                double taxableIncome = monthlyGross - totalDeductions; // to get the taxable income
-
-                                System.out.println("MONTHLY GROSS SALARY: " + monthlyGross);
-                                System.out.println("Taxable Income: " + taxableIncome);
-                                System.out.println("---------------------------------------------");
                                 // GOVERNMENT DEDUCTIONS
                                 double sss = computeSSS(monthlyGross); // Calculate SSS contribution
                                 double philhealth = computePhilHealth(monthlyGross); //calculate PhilHealth contribution
                                 double pagibig = computePagIbig(monthlyGross); //calculate Pag-ibig contribution
                                 double totalDeductions = sss + philhealth + pagibig; //calculate total deductions
+                                double taxableIncome = monthlyGross - totalDeductions; // to get the taxable income
                                 double withholdingTax = computeWithholdingTax(taxableIncome); // calculate taxes
                                 double finalNetSalary = grossSalary2 - (sss + philhealth + pagibig + withholdingTax); // calculate the net summary
+
+                                System.out.println("MONTHLY GROSS SALARY: " + monthlyGross);
+                                System.out.println("Taxable Income: " + taxableIncome);
+                                System.out.println("---------------------------------------------");
 
                                 System.out.println("MONTHLY DEDUCTIONS ");
                                 System.out.println("SSS: " + sss);
