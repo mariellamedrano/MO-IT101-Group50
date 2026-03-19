@@ -214,6 +214,7 @@ public class MotorPH {
                             System.out.println("---------------------------------------------");
                             //adding both cutoffs for deductions
                             double monthlyGross = grossSalary + grossSalary2;
+                            double taxableIncome = monthlyGross - totalDeductions; // to get the taxable income
 
                             System.out.println("MONTHLY GROSS SALARY: " + monthlyGross);
                             System.out.println("Taxable Income: " + taxableIncome);
@@ -223,7 +224,6 @@ public class MotorPH {
                             double philhealth = computePhilHealth(monthlyGross); //calculate PhilHealth contribution
                             double pagibig = computePagIbig(monthlyGross); //calculate Pag-ibig contribution
                             double totalDeductions = sss + philhealth + pagibig; //calculate total deductions
-                            double taxableIncome = monthlyGross - totalDeductions; // to get the taxable income
                             double withholdingTax = computeWithholdingTax(taxableIncome); // calculate taxes
                             double finalNetSalary = grossSalary2 - (sss + philhealth + pagibig + withholdingTax); // calculate the net summary
 
@@ -313,6 +313,7 @@ public class MotorPH {
                                 System.out.println("---------------------------------------------");
                                 //adding both cutoffs for deductions
                                 double monthlyGross = grossSalary + grossSalary2;
+                                double taxableIncome = monthlyGross - totalDeductions; // to get the taxable income
 
                                 System.out.println("MONTHLY GROSS SALARY: " + monthlyGross);
                                 System.out.println("Taxable Income: " + taxableIncome);
@@ -322,7 +323,6 @@ public class MotorPH {
                                 double philhealth = computePhilHealth(monthlyGross); //calculate PhilHealth contribution
                                 double pagibig = computePagIbig(monthlyGross); //calculate Pag-ibig contribution
                                 double totalDeductions = sss + philhealth + pagibig; //calculate total deductions
-                                double taxableIncome = monthlyGross - totalDeductions; // to get the taxable income
                                 double withholdingTax = computeWithholdingTax(taxableIncome); // calculate taxes
                                 double finalNetSalary = grossSalary2 - (sss + philhealth + pagibig + withholdingTax); // calculate the net summary
 
