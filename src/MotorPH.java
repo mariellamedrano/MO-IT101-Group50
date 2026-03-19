@@ -49,27 +49,22 @@ public class MotorPH {
                 String birthday = "";
                 boolean found = false;
 
-                try {
-
-                    CSVReader reader = new CSVReader(new FileReader(empFile));
+                // Refactored to try-with-recources to ensure the CSVReader is automatically closed.
+                // This prevents resource leaks even if an exception occurs during the file-reading loop.
+                try (CSVReader reader = new CSVReader(new FileReader(empFile)));
                     reader.readNext(); // skip header
                     String[] row;
 
                     while ((row = reader.readNext()) != null) {
-
                         if (row[0].equals(inputEmpNo)) {
-
                             empNo = row[0];
                             lastName = row[1];
                             firstName = row[2];
                             birthday = row[3];
-
                             found = true;
                             break;
                         }
                     }
-
-                    reader.close();
 
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -102,9 +97,9 @@ public class MotorPH {
 
             if (option == 1) { //Process Payroll
                 System.out.println("\nProcess Payroll Options:");
-                System.out.println("1. One employee"); //suboption 1
-                System.out.println("2. All employees"); //suboption 2
-                System.out.println("3. Exit the program"); //suboption 3
+                System.out.println("1. One employee"); 
+                System.out.println("2. All employees"); 
+                System.out.println("3. Exit the program"); 
                 System.out.print("Choose option: ");
 
                 int subOption = sc.nextInt();
@@ -126,9 +121,8 @@ public class MotorPH {
                     double hourlyRate = 0;
                     boolean found = false;
 
-                    try {
-                        CSVReader reader = new CSVReader(new FileReader(empFile));
-                        reader.readNext(); // skip header
+                    try (CSVReader reader = new CSVReader(new FileReader(empFile)));
+                        reader.readNext(); 
                         String[] row;
 
                         while ((row = reader.readNext()) != null) {
@@ -142,7 +136,7 @@ public class MotorPH {
                                 break;
                             }
                         }
-                        reader.close();
+                
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -152,33 +146,32 @@ public class MotorPH {
                         return;
                     }
 
-                    // Display employee info when employee # entered exists
-                    System.out.println("\n===================================");
-                    System.out.println("Employee #: " + empNo);
-                    System.out.println("Employee Name: " + lastName + ", " + firstName);
-                    System.out.println("Birthday: " + birthday);
-                    System.out.println("===================================");
+                    // Refactored to a static method to improve modularity and reduce main method length.
+                    // This follows the Single Responsibility Principle by separating UI from business logic.
+                    printEmployeeHeader(empNo, lastName, firstName, birthday);
 
                     // Hours worked calculations (June - December)
-                    try {
-                        CSVReader attendanceReader = new CSVReader(new FileReader(attendanceFile));
-                        attendanceReader.readNext(); // skip header
+                    // Using try-with-resources to prevent memory leaks and handle file closure automatically
+                    try (CSVReader attendanceReader = new CSVReader(new FileReader(attendanceFile)));
+                        attendanceReader.readNext();
                         String[] row;
-
+                        //This line loads the data so allRecords exists.
+                        // To avoid repetitive File I/O operations inside the employee loop.
+                        java.util.List<String[]> allRecords = attendanceReader.readAll();
+                        // We read all records into a List first
                         java.time.format.DateTimeFormatter timeFormat = java.time.format.DateTimeFormatter.ofPattern("H:mm");
                         //Iterates through months to compute payroll; variables reset each month
                         for (int month = 6; month <= 12; month++) {
                             double firstHalf = 0;
                             double secondHalf = 0;
 
-                            attendanceReader = new CSVReader(new FileReader(attendanceFile));
-                            attendanceReader.readNext(); // skip header again
-                            //Single-pass CSV reading would be more efficient, but here we can scan for specific month records
-                            while ((row = attendanceReader.readNext()) != null) {
+                            // Instead of re-opening the file, we loop through the List we already loaded
+                            for (String[] row: allRecords) {
                                 if (!row[0].equals(empNo)) {
-                                    continue; // filter for this employee
+                                    continue;
                                 }
-                                String[] dateParts = row[3].split("/"); // MM/DD/YYYY
+
+                                String[] dateParts = row[3].split("/");
                                 int recordMonth = Integer.parseInt(dateParts[0]);
                                 int day = Integer.parseInt(dateParts[1]);
                                 int year = Integer.parseInt(dateParts[2]);
@@ -200,62 +193,70 @@ public class MotorPH {
                             }
 
                             String monthName = java.time.Month.of(month).name();
+                            System.out.println("\n===========================================");
+                            System.out.println("PAYROLL FOR " + monthName + 2024);
+                            System.out.println("=============================================");
                             System.out.println("\nCutoff Date: " + monthName + " 1 to 15");
                             System.out.println("Total Hours Worked: " + firstHalf);
 
-                            double grossSalary = firstHalf * hourlyRate; //computed firs cutoff hours x hourly rate read from CSV file
+                            double grossSalary = firstHalf * hourlyRate; //computed first cutoff hours x hourly rate read from CSV file
                             double netSalary = grossSalary; // no deductions for first cutoff so gross and net is the same
                             //Printing raw values to strictly follow the 'No Rounding' requirement, but can use printf in the future
                             System.out.println("Gross Salary: " + grossSalary);
                             System.out.println("Net Salary: " + netSalary);
                             System.out.println("(No deductions for this cutoff)");
 
+                            System.out.println("\n-------------------------------------------");
                             System.out.println("Cutoff Date: " + monthName + " 16 to " + java.time.YearMonth.of(2024, month).lengthOfMonth());
                             System.out.println("Total Hours Worked: " + secondHalf);
-
                             double grossSalary2 = secondHalf * hourlyRate;
                             System.out.println("Gross Salary: " + grossSalary2);
+                            System.out.println("---------------------------------------------");
                             //adding both cutoffs for deductions
                             double monthlyGross = grossSalary + grossSalary2;
-                            System.out.println("Monthly Gross Salary: " + monthlyGross);
-                            //calculate Gov deductions
-                            //calculate SSS contribution
-                            double sss = computeSSS(monthlyGross);
-                            System.out.println("SSS Deduction: " + sss);
-                            //calculate PhilHealth contribution
-                            double philhealth = computePhilHealth(monthlyGross);
-                            System.out.println("PhilHealth Deduction: " + philhealth);
-                            //calculate Pag-ibig contribution
-                            double pagibig = computePagIbig(monthlyGross);
-                            System.out.println("Pag-IBIG Deduction: " + pagibig);
-                            //calculate total deductions
-                            double totalDeductions = sss + philhealth + pagibig;
-                            System.out.println("Total Deductions: " + totalDeductions);
-                            double taxableIncome = monthlyGross - totalDeductions;
+
+                            System.out.println("MONTHLY GROSS SALARY: " + monthlyGross);
+                            System.out.println("---------------------------------------------");
+                            // GOVERNMENT DEDUCTIONS
+                            double sss = computeSSS(monthlyGross); // Calculate SSS contribution
+                            double philhealth = computePhilHealth(monthlyGross); //calculate PhilHealth contribution
+                            double pagibig = computePagIbig(monthlyGross); //calculate Pag-ibig contribution
+                            double totalDeductions = sss + philhealth + pagibig; //calculate total deductions
+                            double taxableIncome = monthlyGross - totalDeductions; // to get the taxable income
+                            double withholdingTax = computeWithholdingTax(taxableIncome); // calculate taxes
+                            double finalNetSalary = grossSalary2 - (sss + philhealth + pagibig + withholdingTax); // calculate the net summary
+
+                            System.out.println("\MONTHLY DEDUCTIONS ");
+                            System.out.println("SSS: " + sss);
+                            System.out.println("PhilHealth: " + philhealth);
+                            System.out.println("Pag-IBIG: " + pagibig);
                             System.out.println("Taxable Income: " + taxableIncome);
-                            //calculate taxes
-                            double withholdingTax = computeWithholdingTax(taxableIncome);
                             System.out.println("Withholding Tax: " + withholdingTax);
-                            //calculate net salary
-                            double finalNetSalary = grossSalary2 - (sss + philhealth + pagibig + withholdingTax);
+                            System.out.println("Total Deductions: " + totalDeductions);
+                            
+                            System.out.println("\--------------------------------------------");
                             System.out.println("Final Net Salary: " + finalNetSalary);
+                            System.out.println("=============================================");
                         }
 
-                        attendanceReader.close();
                     } catch (Exception ex) {
                         ex.printStackTrace();
                     }
                 }
 
-                // for Suboption 2: All Employees
+                // For Suboption 2: All Employees
                 if (subOption == 2) {
-                    try {
-                        CSVReader reader = new CSVReader(new FileReader(empFile));
-                        reader.readNext(); //skip the header
-                        String[] row;
+                    // Open both the readers at once using try-with-resources
+                    try (CSVReader reader = new CSVReader(new FileReader(empFile)); CSVReader attendanceReader = new CSVReader(new FileReader(attendanceFile))) {
+                        reader.readNext(); // Skip the employee header
+                        attendanceReader.readNext(); // Skip the attendance header
+
+                        // Load all attencance into RAM before any loop starts.
+                        java.util.List<String[]> allAttendance = attendanceReader.readAll();
 
                         int count = 0; //counter for page break
                         int pageSize = 5; //this is the number of employees per page
+                        String[] row;
 
                         while ((row = reader.readNext()) != null) { //looping all employees
                             String empNo = row[0];
@@ -263,12 +264,10 @@ public class MotorPH {
                             String firstName = row[2];
                             String birthday = row[3];
                             double hourlyRate = Double.parseDouble(row[18]);
-
-                            System.out.println("\n===================================");
-                            System.out.println("Employee #: " + empNo);
-                            System.out.println("Employee Name: " + lastName + ", " + firstName);
-                            System.out.println("Birthday: " + birthday);
-                            System.out.println("===================================");
+                            
+                            // Refactored to a static method to improve modularity and reduce main method length.
+                            printEmployeeHeader(empNo, lastName, firstName, birthday);
+                            
 
                             //attendance + calculating hours worked
                             java.time.format.DateTimeFormatter timeFormat = java.time.format.DateTimeFormatter.ofPattern("H:mm");
@@ -277,82 +276,76 @@ public class MotorPH {
                                 double firstHalf = 0;
                                 double secondHalf = 0;
 
-                                CSVReader attendanceReader = new CSVReader(new FileReader(attendanceFile));
-                                attendanceReader.readNext(); //skip the header
-                                String[] attRow;
-
-                                while ((attRow = attendanceReader.readNext()) != null) {
-                                    if (!attRow[0].equals(empNo)) {
-                                        continue;
-                                    }
-
+                                for (String[] attRow: allAttendance) {
+                                    if (!attRow[0].equals(empNo)) continue;
+                                    
                                     String[] dateParts = attRow[3].split("/");
-                                    int recordMonth = Integer.parseInt(dateParts[0]);
-                                    int day = Integer.parseInt(dateParts[1]);
-                                    int year = Integer.parseInt(dateParts[2]);
-                                    if (recordMonth != month || year != 2024) {
-                                        continue;
-                                    }
+                                    if (Integer.parseInt(dateParts[0]) != motnh || Integer.parseInt(dateParts[2]) != 2024) continue;
 
                                     java.time.LocalTime login = java.time.LocalTime.parse(attRow[4].trim(), timeFormat);
                                     java.time.LocalTime logout = java.time.LocalTime.parse(attRow[5].trim(), timeFormat);
-
                                     double hours = computeHours(login, logout);
 
-                                    if (day <= 15) {
-                                        firstHalf += hours;
-                                    } else {
-                                        secondHalf += hours;
-                                    }
+                                    if (Integer.parseInt(dateParts[1]) <= 15) firstHalf += hours;
+                                    else secondHalf += hours;
                                 }
-                                attendanceReader.close();
 
                                 //for first cutoff
-                                double grossSalary1 = firstHalf * hourlyRate;
-                                double netSalary1 = grossSalary1;
-                                System.out.println("\nCutoff Date: " + java.time.Month.of(month).name() + " 1 to 15");
+                                String monthName = java.time.Month.of(month).name();
+                                System.out.println("\n===========================================");
+                                System.out.println("PAYROLL FOR " + monthName + 2024);
+                                System.out.println("=============================================");
+                                System.out.println("\nCutoff Date: " + monthName + " 1 to 15");
                                 System.out.println("Total Hours Worked: " + firstHalf);
-                                System.out.println("Gross Salary: " + grossSalary1);
-                                System.out.println("Net Salary: " + netSalary1);
+
+                                double grossSalary = firstHalf * hourlyRate; //computed first cutoff hours x hourly rate read from CSV file
+                                double netSalary = grossSalary; // no deductions for first cutoff so gross and net is the same
+                                //Printing raw values to strictly follow the 'No Rounding' requirement, but can use printf in the future
+                                System.out.println("Gross Salary: " + grossSalary);
+                                System.out.println("Net Salary: " + netSalary);
                                 System.out.println("(No deductions for this cutoff)");
 
-                                //for second cutoff
-                                double grossSalary2 = secondHalf * hourlyRate; //multiplying hours worked with hourly rate
-                                double netSalary2 = grossSalary2;
-                                double monthlyGross = grossSalary1 + grossSalary2;
-
-                                //Gov Contributions
-                                double sss = computeSSS(monthlyGross);
-                                double philHealth = computePhilHealth(monthlyGross);
-                                double pagibig = computePagIbig(monthlyGross);
-                                double totalDeductions = sss + philHealth + pagibig;
-                                // Taxable income is gross minus Gov contributions (SSS/PH/PI)
-                                double taxableIncome = monthlyGross - totalDeductions;
-                                // Calculating tax based on the monthly taxable income
-                                double withholdingTax = computeWithholdingTax(taxableIncome);
-                                // Applying all deductions and withholding tax to the second cutoff net pay
-                                netSalary2 -= (totalDeductions + withholdingTax);
-
-                                System.out.println("Cutoff Date: " + java.time.Month.of(month).name() + " 16 to " + java.time.YearMonth.of(2024, month).lengthOfMonth());
+                                System.out.println("\n-------------------------------------------");
+                                System.out.println("Cutoff Date: " + monthName + " 16 to " + java.time.YearMonth.of(2024, month).lengthOfMonth());
                                 System.out.println("Total Hours Worked: " + secondHalf);
+                                double grossSalary2 = secondHalf * hourlyRate;
                                 System.out.println("Gross Salary: " + grossSalary2);
-                                System.out.println("Monthly Gross Salary: " + monthlyGross);
-                                System.out.println("SSS Deduction: " + sss);
-                                System.out.println("PhilHealth Deduction: " + philHealth);
-                                System.out.println("Pag-IBIG Deduction: " + pagibig);
-                                System.out.println("Total Deductions: " + totalDeductions);
+                                System.out.println("---------------------------------------------");
+                                //adding both cutoffs for deductions
+                                double monthlyGross = grossSalary + grossSalary2;
+
+                                System.out.println("MONTHLY GROSS SALARY: " + monthlyGross);
+                                System.out.println("---------------------------------------------");
+                                // GOVERNMENT DEDUCTIONS
+                                double sss = computeSSS(monthlyGross); // Calculate SSS contribution
+                                double philhealth = computePhilHealth(monthlyGross); //calculate PhilHealth contribution
+                                double pagibig = computePagIbig(monthlyGross); //calculate Pag-ibig contribution
+                                double totalDeductions = sss + philhealth + pagibig; //calculate total deductions
+                                double taxableIncome = monthlyGross - totalDeductions; // to get the taxable income
+                                double withholdingTax = computeWithholdingTax(taxableIncome); // calculate taxes
+                                double finalNetSalary = grossSalary2 - (sss + philhealth + pagibig + withholdingTax); // calculate the net summary
+
+                                System.out.println("\MONTHLY DEDUCTIONS ");
+                                System.out.println("SSS: " + sss);
+                                System.out.println("PhilHealth: " + philhealth);
+                                System.out.println("Pag-IBIG: " + pagibig);
                                 System.out.println("Taxable Income: " + taxableIncome);
                                 System.out.println("Withholding Tax: " + withholdingTax);
-                                System.out.println("Final Net Salary: " + netSalary2);
+                                System.out.println("Total Deductions: " + totalDeductions);
+                            
+                                System.out.println("\--------------------------------------------");
+                                System.out.println("Final Net Salary: " + finalNetSalary);
+                                System.out.println("=============================================");
+                                
                             }
                             count++;
-                            //for the page view
+                            //For Page View - Pagination - system will show 5 employees per page only.
                             if (count % pageSize == 0) {
                                 System.out.println("\n--- Press Enter to continue to next employees ---");
                                 sc.nextLine();
                             }
                         }
-                        reader.close();
+                    
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -537,4 +530,13 @@ public class MotorPH {
 
         return tax;
     }
+    // Helper method to print the employee header - to address IT Coach's feedback on Main Method Length".
+    public static void printEmployeeHeader(String empNo, String lastName, String firstName, String birthday) {
+        System.out.println("\n===================================");
+        System.out.println("Employee #: " + empNo);
+        System.out.println("Employee Name: " + lastName + ", " + firstName);
+        System.out.println("Birthday: " + birthday);
+        System.out.println("====================================");
+    }
 }
+
