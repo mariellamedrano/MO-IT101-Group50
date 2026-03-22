@@ -23,6 +23,9 @@ Flow:
 - Final Reporting, detailed breakdown of take-home pay, showing months June to December's calculations per employee
 - For all employees, a page break/pagination was added to show 5 employees per page, hit enter to go to next page
 
+Project Plan can be found here:
+https://docs.google.com/spreadsheets/d/1nEweNu1gh4-bm8iAGuvGjmg7EveyoK57m9rwuElBW0k/edit?usp=sharing
+
 How to Run (for testers)
 This program is built using Java with Ant in Netbeans
 1. Clone/Download the repository as a ZIP and extract it.
